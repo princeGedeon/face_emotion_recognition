@@ -1,14 +1,17 @@
 import cv2
 import mediapipe as mp
 
-from inference import init_model, inference
+from constants import EMOTIONS_CLASSES
+from inference_without_tf import init_model, inference
 
 # Initialisation de MediaPipe pour la détection de visages
 mp_face_detection = mp.solutions.face_detection
 mp_drawing = mp.solutions.drawing_utils
 model=init_model()
 # Initialisation de la capture vidéo
-cap = cv2.VideoCapture("exp.mp4")
+cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 112)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 112)
 
 # Liste pour stocker les informations des visages
 face_infos = []
@@ -42,9 +45,15 @@ with mp_face_detection.FaceDetection(
         # Ajouter les informations du visage à la liste
         face_infos.append((x, y, w, h))
         face=image[y:y + h, x:x + w]
-        i=inference(face,model)
-        print(i)
-        # Dessiner le rectangle
+        i,pred=inference(face,model)
+        print({
+          EMOTIONS_CLASSES[str(i)]:j*100 for i,j in enumerate(list(pred[0]))
+        })
+
+
+        emo="EMOTIONS_CLASSES[str(i[0])]"
+        cv2.putText(image, emo, (x, y), cv2.FONT_HERSHEY_PLAIN, 2.0, (255, 0, 0), 3, cv2.LINE_AA)
+
         #cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
         # Afficher les informations du visage (exemple)
